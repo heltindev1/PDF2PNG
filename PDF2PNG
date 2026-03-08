@@ -1,0 +1,56 @@
+import os
+import fitz  # Biblioteca PyMuPDF
+
+# =================================================================
+# CONFIGURAÇÃO DE CAMINHOS - EDITE ESTAS LINHAS ANTES DE RODAR
+# =================================================================
+# Coloque aqui o caminho da pasta onde estão os seus arquivos PDF
+PASTA_ORIGEM = r'C:\CAMINHO\PARA\SEUS\PDFS'
+
+# Coloque aqui o caminho da pasta onde você quer salvar as imagens PNG
+PASTA_DESTINO = r'C:\CAMINHO\PARA\SALVAR\FOTOS'
+# =================================================================
+
+def pdf_para_png(origem, destino):
+    """
+    Converte todas as páginas de arquivos PDF em uma pasta para imagens PNG.
+    """
+    if not os.path.exists(destino):
+        os.makedirs(destino)
+        print(f"Pasta de destino criada: {destino}")
+
+    try:
+        arquivos = [f for f in os.listdir(origem) if f.lower().endswith('.pdf')]
+    except FileNotFoundError:
+        print(f"ERRO: A pasta de origem não foi encontrada: {origem}")
+        return
+
+    if not arquivos:
+        print(f"Nenhum arquivo PDF encontrado em: {origem}")
+        return
+
+    print(f"Iniciando conversão de {len(arquivos)} arquivos...")
+
+    for nome_pdf in arquivos:
+        caminho_pdf = os.path.join(origem, nome_pdf)
+        
+        try:
+            doc = fitz.open(caminho_pdf)
+            
+            for i, pagina in enumerate(doc):
+                # Matrix(2, 2) aumenta a qualidade da imagem (DPI)
+                pix = pagina.get_pixmap(matrix=fitz.Matrix(2, 2))
+                
+                # Gera o nome da imagem baseada no PDF e número da página
+                nome_png = f"{os.path.splitext(nome_pdf)[0]}_pag_{i+1}.png"
+                caminho_png = os.path.join(destino, nome_png)
+                
+                pix.save(caminho_png)
+                print(f"✅ Convertido: {nome_png}")
+            
+            doc.close()
+        except Exception as e:
+            print(f"❌ Erro ao processar {nome_pdf}: {e}")
+
+if __name__ == "__main__":
+    pdf_para_png(PASTA_ORIGEM, PASTA_DESTINO)
